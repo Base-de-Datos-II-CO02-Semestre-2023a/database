@@ -206,7 +206,6 @@ CREATE TABLE venta(
     id_lugar INTEGER CONSTRAINT movimiento_id_lugar_fk REFERENCES lugar(id) NOT NULL,
     id_empleado INTEGER CONSTRAINT venta_id_empleador_fk REFERENCES empleado(id) NOT NULL,
     id_cliente INTEGER CONSTRAINT venta_id_cliente_fk REFERENCES externo(id) NOT NULL,
-    numero_factura INT NOT NULL,
     subtotal NUMERIC(10,2) CHECK (subtotal >= 0) NOT NULL,
     iva NUMERIC(10,2) CHECK (iva >= 0) NOT NULL,
     total NUMERIC(10,2) CHECK (total >= 0) NOT NULL,
