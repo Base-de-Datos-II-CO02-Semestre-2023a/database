@@ -53,7 +53,7 @@ CREATE TABLE registro_contratos(
     dias_vacaciones INT check (dias_vacaciones >= 0)
 );
 
-CREATE TABLE modificacion(
+CREATE TABLE modificacion_contrato(
     id_contrato INT CONSTRAINT id_contrato_fk REFERENCES registro_contratos(id) NOT NULL,
     changed_on TIMESTAMP(6) NOT NULL,
     modificaciones JSON NOT NULL,
