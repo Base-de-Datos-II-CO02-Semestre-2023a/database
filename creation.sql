@@ -219,6 +219,7 @@ CREATE TABLE concepto(
     cantidad INT NOT NULL,
     id_articulo INT CONSTRAINT concepto_id_articulo_fk REFERENCES articulo(id),
     id_movimiento INT NOT NULL ,
+    caducidad DATE;
     precio_unitario NUMERIC(8,2) NOT NULL,
     tipo tipo_movimiento NOT NULL,
     monto NUMERIC(10,2) NOT NULL,
