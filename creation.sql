@@ -72,7 +72,6 @@ CREATE TABLE empleado(
 ) INHERITS (sujeto);
 
 alter table lugar add constraint lugar_responsable_fk foreign key (id_responsable) REFERENCES empleado(id);
-alter table registro_contratos add constraint registro_contrato_id_empleado_fk foreign key (id_empleado) REFERENCES empleado(id);
 
 
 CREATE TYPE tipo_gasto_empleado AS ENUM('Nomina','Seguro','Afore','Prima_Vacacional');
