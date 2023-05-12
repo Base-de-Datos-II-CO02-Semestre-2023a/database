@@ -67,6 +67,7 @@ CREATE TABLE empleado(
     rfc VARCHAR(13) NOT NULL UNIQUE,
     fecha_de_nacimiento DATE NOT NULL,
     fecha_de_ingreso DATE NOT NULL,
+    contrato INT,
     indice_productividad NUMERIC(10,2) check (indice_productividad BETWEEN 0 AND 1) NOT NULL
 ) INHERITS (sujeto);
 
