@@ -1,8 +1,3 @@
-create schema if not exists capybarav2;
-set search_path to capibarav2;
-
-grant usage on schema capibarav2 to agentep;
-grant update, select, delete, insert on all tables in schema capibarav2 to agentep;
 
 CREATE TABLE ciudad(
     id VARCHAR(5) PRIMARY KEY,
