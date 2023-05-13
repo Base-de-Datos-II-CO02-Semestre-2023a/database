@@ -1,6 +1,11 @@
+create schema if not exists capybarav2;
+set search_path to capibarav2;
+
+grant usage on schema capibarav2 to agentep;
+grant update, select, delete, insert on all tables in schema capibarav2 to agentep;
 
 CREATE TABLE ciudad(
-    id_ciudad VARCHAR(5) PRIMARY KEY,
+    id VARCHAR(5) PRIMARY KEY,
     entidad VARCHAR(1000) NOT NULL,
     pais VARCHAR(1000) NOT NULL,
     nombre VARCHAR(1000) NOT NULL
@@ -9,7 +14,7 @@ CREATE TABLE ciudad(
 CREATE TABLE sujeto(
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    telefono INT NOT NULL,
+    telefono BIGINT NOT NULL UNIQUE,
     correo VARCHAR(256) check (correo LIKE '%_@%.%')NOT NULL UNIQUE,
     codigo_postal INT NOT NULL,
     id_ciudad VARCHAR CONSTRAINT sujeto_id_ciudad_fk REFERENCES ciudad(id_ciudad) NOT NULL,
@@ -47,10 +52,10 @@ CREATE TABLE registro_contratos(
     id SERIAL PRIMARY KEY,
     id_empleado INTEGER NOT NULL,
     fecha_inicio DATE NOT NULL,
-    fecha_fin DATE NOT NULL,
-    puesto VARCHAR (50),
+    fecha_fin DATE,
+    puesto tipo_puesto NOT NULL,
     salario NUMERIC (10,2) check ( salario >= 0) NOT NULL,
-    dias_vacaciones INT check (dias_vacaciones >= 0)
+    dias_vacaciones INT check (dias_vacaciones >= 0) not null
 );
 
 CREATE TABLE modificacion_contrato(
@@ -63,11 +68,17 @@ CREATE TABLE modificacion_contrato(
 CREATE TABLE empleado(
     id SERIAL PRIMARY KEY,
     nss INT NOT NULL UNIQUE,
-    password VARCHAR(16) NOT NULL,
+    password VARCHAR(256) NOT NULL,
     rfc VARCHAR(13) NOT NULL UNIQUE,
     fecha_de_nacimiento DATE NOT NULL,
     fecha_de_ingreso DATE NOT NULL,
-    indice_productividad NUMERIC(10,2) check (indice_productividad BETWEEN 0 AND 1) NOT NULL
+    contrato INTEGER CONSTRAINT contrato_fk REFERENCES registro_contratos(id),
+    indice_productividad NUMERIC(10,2) check (indice_productividad BETWEEN 0 AND 1) default 1 not null ,
+
+    telefono BIGINT NOT NULL UNIQUE,
+    correo VARCHAR(256) check (correo LIKE '%_@%.%')NOT NULL UNIQUE,
+    id_ciudad VARCHAR CONSTRAINT empleado_id_ciudad_fk REFERENCES ciudad(id_ciudad) NOT NULL
+
 ) INHERITS (sujeto);
 
 alter table lugar add constraint lugar_responsable_fk foreign key (id_responsable) REFERENCES empleado(id);
