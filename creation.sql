@@ -63,7 +63,7 @@ CREATE TABLE modificacion_contrato(
 CREATE TABLE empleado(
     id SERIAL PRIMARY KEY,
     nss INT NOT NULL UNIQUE,
-    password VARCHAR(256) NOT NULL,
+    password VARCHAR(256) NOT NULL UNIQUE,
     rfc VARCHAR(13) NOT NULL UNIQUE,
     fecha_de_nacimiento DATE NOT NULL,
     fecha_de_ingreso DATE NOT NULL,
@@ -73,8 +73,7 @@ CREATE TABLE empleado(
     telefono BIGINT NOT NULL UNIQUE,
     correo VARCHAR(256) check (correo LIKE '%_@%.%')NOT NULL UNIQUE,
     id_ciudad VARCHAR CONSTRAINT empleado_id_ciudad_fk REFERENCES ciudad(id_ciudad) NOT NULL
-
-) INHERITS (sujeto);
+ ) INHERITS (sujeto);
 
 alter table lugar add constraint lugar_responsable_fk foreign key (id_responsable) REFERENCES empleado(id);
 alter table registro_contratos add constraint registro_contrato_id_empleado_fk foreign key (id_empleado) REFERENCES empleado(id);
