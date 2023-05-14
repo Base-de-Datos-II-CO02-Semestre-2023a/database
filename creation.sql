@@ -12,7 +12,7 @@ CREATE TABLE sujeto(
     telefono BIGINT NOT NULL UNIQUE,
     correo VARCHAR(256) check (correo LIKE '%_@%.%')NOT NULL UNIQUE,
     codigo_postal INT NOT NULL,
-    id_ciudad VARCHAR CONSTRAINT sujeto_id_ciudad_fk REFERENCES ciudad(id_ciudad) NOT NULL,
+    id_ciudad VARCHAR CONSTRAINT sujeto_id_ciudad_fk REFERENCES ciudad(id) NOT NULL,
     calle VARCHAR(100) NOT NULL,
     numero_interno INT,
     numero_externo INT
