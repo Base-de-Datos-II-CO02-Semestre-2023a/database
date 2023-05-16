@@ -72,7 +72,7 @@ CREATE TABLE empleado(
 
     telefono BIGINT NOT NULL UNIQUE,
     correo VARCHAR(256) check (correo LIKE '%_@%.%')NOT NULL UNIQUE,
-    id_ciudad VARCHAR CONSTRAINT empleado_id_ciudad_fk REFERENCES ciudad(id_ciudad) NOT NULL
+    id_ciudad VARCHAR CONSTRAINT empleado_id_ciudad_fk REFERENCES ciudad(id) NOT NULL
  ) INHERITS (sujeto);
 
 alter table lugar add constraint lugar_responsable_fk foreign key (id_responsable) REFERENCES empleado(id);
