@@ -145,7 +145,7 @@ CREATE TABLE cat_prod_ser(
 CREATE TYPE impuesto AS ENUM('00','01','02','03','04');
 CREATE TYPE tipo_unidad AS ENUM('kilogramos','kilos','litros','mililitros','metros','centimetros');
 CREATE TABLE articulo(
-    id INT PRIMARY KEY,
+    id INT,
     nombre VARCHAR(50) NOT NULL,
     descripcion INT CONSTRAINT articulo_descripcion_prod_ser_fk REFERENCES cat_prod_ser(clave) NOT NULL,
     unidad TIPO_UNIDAD NOT NULL,
@@ -155,8 +155,10 @@ CREATE TABLE articulo(
     precio_base NUMERIC(10,2) NOT NULL,
     porcentaje_iva NUMERIC(10,2) check(porcentaje_iva >= 0) NOT NULL,
     porcentaje_ieps NUMERIC(10,2) check(porcentaje_ieps >= 0) NOT NULL,
-    porcentaje_ganancia NUMERIC(10,2) check(porcentaje_ganancia BETWEEN 0 AND 1) NOT NULL
-);
+    porcentaje_ganancia NUMERIC(10,2) check(porcentaje_ganancia BETWEEN 0 AND 1) NOT NULL,
+    CONSTRAINT pk_articulo PRIMARY KEY (id, precio_base)
+) PARTITION BY RANGE (precio_base);
+
 
 CREATE TABLE inventario(
     cantidad INT NOT NULL,
