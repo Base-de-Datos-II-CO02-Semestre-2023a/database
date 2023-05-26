@@ -1,4 +1,6 @@
 
+CREATE SCHEMA capibarav2;
+set search_path to capibarav2;
 CREATE TABLE ciudad(
     id VARCHAR(5) PRIMARY KEY,
     entidad VARCHAR(1000) NOT NULL,
@@ -20,13 +22,13 @@ CREATE TABLE sujeto(
 
 CREATE TYPE tipo_regimen AS ENUM ('601', '602', '603', '604', '605', '606', '607', '608', '609', '610', '611', '612', '613', '614', '615', '616', '617', '618', '619', '620', '621', '622', '623', '624', '625', '626');
 
-CREATE TYPE tipo_cliente AS ENUM ('Cliente','Provedor');
+CREATE TYPE tipo_externo AS ENUM ('Cliente','Provedor');
 
 CREATE TABLE externo(
     id SERIAL PRIMARY KEY,
     rfc VARCHAR(13) UNIQUE,
     regimen_fiscal tipo_regimen NOT NULL,
-    tipo tipo_cliente NOT NULL,
+    tipo tipo_externo NOT NULL,
 
     telefono BIGINT NOT NULL UNIQUE,
     correo VARCHAR(256) check (correo LIKE '%_@%.%')NOT NULL UNIQUE,
@@ -184,7 +186,7 @@ CREATE TABLE control_asistencia(
 
 CREATE TABLE cat_prod_ser(
     clave INT PRIMARY KEY,
-    descripción VARCHAR(1000) NOT NULL
+    descripcion VARCHAR(1000) NOT NULL
 );
 
 CREATE TYPE impuesto AS ENUM('00','01','02','03','04');
@@ -209,35 +211,42 @@ CREATE TABLE articulo(
     porcentaje_ieps NUMERIC(10,2) check(0<=porcentaje_ieps and porcentaje_ieps<=1) NOT NULL,
     porcentaje_ganancia NUMERIC(10,2) check(0<=porcentaje_ganancia and porcentaje_ganancia<=1) NOT NULL,
     PRIMARY KEY (id, precio_base)
-) PARTITION BY RANGE (id,precio_base);
+) PARTITION BY RANGE (precio_base);
+
+CREATE TABLE articulo_cheaper partition of articulo FOR VALUES FROM (0) TO (1000);
+CREATE TABLE articulo_expensive partition of articulo FOR VALUES FROM (1000) TO (1000000);
 
 CREATE TABLE inventario(
     cantidad INT NOT NULL,
-    descuento NUMERIC(10,2) check(descuento BETWEEN 0 AND 1) NOT NULL,
+    descuento NUMERIC(10,2) check(descuento BETWEEN 0 AND 1) NOT NULL default 0,
     id_lugar INTEGER NOT NULL,
     id_articulo INTEGER NOT NULL,
-    precio_base NUMERIC(10,2)not null ,
+    precio_base NUMERIC(10,2),
     caducidad DATE,
     constraint inventario_articulo_fk FOREIGN KEY (id_articulo, precio_base) REFERENCES articulo(id, precio_base),
 
     PRIMARY KEY(id_lugar, id_articulo, caducidad)
 );
+CREATE TYPE tipo_movimiento AS ENUM('venta','traslado','reabastecimiento','perdida');
 
 CREATE TABLE movimiento(
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
 
-    cantidad_conceptos INT CHECK (cantidad_conceptos >= 0) NOT NULL,
+    tipomov tipo_movimiento NOT NULL,
+
+    cantidad_conceptos INT CHECK (cantidad_conceptos >= 0) NOT NULL DEFAULT 0,
 
     id_lugar INTEGER CONSTRAINT movimiento_id_lugar_fk REFERENCES lugar(id) NOT NULL,
 
     fecha DATE NOT NULL,
 
-    hora TIME NOT NULL
+    hora TIME NOT NULL,
+    primary key (id, tipomov)
 );
 
 CREATE TABLE traslado(
     id INTEGER PRIMARY KEY,
-
+    tipomov tipo_movimiento default 'traslado',
     id_lugar INTEGER CONSTRAINT movimiento_id_lugar_fk REFERENCES lugar(id) NOT NULL,
 
     id_empleado INTEGER CONSTRAINT traslado_id_empleado_fk REFERENCES empleado(id) NOT NULL,
@@ -251,6 +260,7 @@ CREATE TYPE tipo_perdida AS ENUM('robo','caducado');
 
 CREATE TABLE perdida(
     id INTEGER PRIMARY KEY,
+    tipomov tipo_movimiento default 'perdida',
     id_lugar INTEGER CONSTRAINT movimiento_id_lugar_fk REFERENCES lugar(id) NOT NULL,
     tipo tipo_perdida NOT NULL,
     total_perdida NUMERIC(10,2) CHECK (total_perdida >= 0) NOT NULL
@@ -259,11 +269,12 @@ CREATE TABLE perdida(
 
 CREATE TABLE reabastecimiento(
     id INTEGER PRIMARY KEY,
+    tipomov tipo_movimiento default 'reabastecimiento',
     id_lugar INTEGER CONSTRAINT movimiento_id_lugar_fk REFERENCES lugar(id) NOT NULL,
 
     id_provedor INTEGER CONSTRAINT reabastecimiento_id_provedor_fk REFERENCES externo(id) NOT NULL,
 
-    total_compra NUMERIC(10,2) CHECK (total_compra >= 0) NOT NULL,
+    total_compra NUMERIC(10,2) CHECK (total_compra >= 0) NOT NULL default 0,
     fecha DATE NOT NULL
 ) INHERITS (movimiento);
 
@@ -272,29 +283,31 @@ CREATE TYPE tipo_pago AS ENUM('efectivo','tarjeta','transferencia');
 
 CREATE TABLE venta(
     id INTEGER PRIMARY KEY,
+    tipomov tipo_movimiento default 'venta',
     id_lugar INTEGER CONSTRAINT movimiento_id_lugar_fk REFERENCES lugar(id) NOT NULL,
 
     id_empleado INTEGER CONSTRAINT venta_id_empleador_fk REFERENCES empleado(id) NOT NULL,
     id_cliente INTEGER CONSTRAINT venta_id_cliente_fk REFERENCES externo(id) NOT NULL,
 
-    subtotal NUMERIC(10,2) CHECK (subtotal >= 0) NOT NULL,
-    iva NUMERIC(10,2) CHECK (iva >= 0) NOT NULL,
-    total NUMERIC(10,2) CHECK (total >= 0) NOT NULL,
-    metodo_pago tipo_pago NOT NULL
+    subtotal NUMERIC(10,2) CHECK (subtotal >= 0) NOT NULL default 0,
+    iva NUMERIC(10,2) CHECK (iva >= 0) NOT NULL default 0,
+    total NUMERIC(10,2) CHECK (total >= 0) NOT NULL default 0,
+    metodo_pago tipo_pago
 ) INHERITS (movimiento);
 
 
-CREATE TYPE tipo_movimiento AS ENUM('venta','traslado','reabastecimiento','perdida');
+
 
 CREATE TABLE concepto(
     cantidad INT NOT NULL,
     id_articulo INT,
-    id_movimiento INT NOT NULL CONSTRAINT  concepto_movimiento_fk REFERENCES movimiento(id),
+    id_movimiento INT NOT NULL,
     caducidad DATE,
     precio_unitario NUMERIC(8,2) NOT NULL,
-    precio_base NUMERIC(10,2) NOT NULL,
+    precio_base NUMERIC(10,2),
     tipo tipo_movimiento NOT NULL,
     monto NUMERIC(10,2) NOT NULL,
     CONSTRAINT concepto_articulo_fk FOREIGN KEY (id_articulo, precio_base) REFERENCES articulo(id, precio_base),
-    PRIMARY KEY (id_articulo, id_movimiento, tipo)
+    PRIMARY KEY (id_articulo, id_movimiento, tipo),
+    constraint concepto_movimiento foreign key (id_movimiento, tipo) references movimiento(id, tipomov)
 );

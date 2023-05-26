@@ -7,7 +7,7 @@ AS
 $$
 BEGIN
 CASE
-	WHEN NEW.tipo = 'Venta' OR NEW.tipo  = 'Perdida' THEN 
+	WHEN NEW.tipo = 'venta' OR NEW.tipo  = 'perdida' THEN 
 		UPDATE inventario 
 		SET cantidad = cantidad - NEW.cantidad
 		FROM movimiento
@@ -17,7 +17,7 @@ CASE
 		AND inventario.caducidad = (SELECT MAX(caducidad)
    					 FROM inventario
 					WHERE NEW.id_articulo = id_articulo );
-	WHEN NEW.tipo = 'Reabastecimiento' THEN 	
+	WHEN NEW.tipo = 'reabastecimiento' THEN 	
 		IF EXISTS(SELECT inventario.id_articulo FROM inventario,movimiento
 		WHERE NEW.id_movimiento = movimiento.id
 			AND movimiento.id_lugar = inventario.id_lugar
@@ -36,7 +36,7 @@ CASE
 			INSERT INTO inventario(cantidad, id_articulo, id_lugar, caducidad)
 			VALUES (NEW.cantidad, NEW.id_articulo,(SELECT id_lugar FROM movimiento WHERE NEW.id_movimiento = movimiento.id),NEW.caducidad);
 		END IF;
-	WHEN NEW.tipo = 'Translado' THEN
+	WHEN NEW.tipo = 'trasslado' THEN
 		IF EXISTS(SELECT inventario.id_articulo FROM inventario,movimiento
 		WHERE NEW.id_movimiento = movimiento.id
 			AND movimiento.id_lugar = inventario.id_lugar
@@ -78,42 +78,7 @@ EXECUTE PROCEDURE movement_verification();
 
 ## Tipo de moviento-Movimiento
 ```sql
-CREATE OR REPLACE FUNCTION insertar_movimiento()
-RETURNS TRIGGER
-LANGUAGE PLPGSQL
-AS
-$$
-BEGIN
-	INSERT INTO movimiento(id, cantidad_conceptos, id_lugar, fecha, hora) 
-	VALUES (NEW.id , NEW.cantidad_conceptos , NEW.id_lugar, NEW.fecha, NEW.hora);
-RETURN NEW;
-END
-$$
-;
 
-CREATE TRIGGER insertar_venta
-BEFORE INSERT
-ON venta
-FOR EACH ROW
-EXECUTE PROCEDURE insertar_movimiento();
-
-CREATE TRIGGER insertar_traslado
-BEFORE INSERT
-ON traslado
-FOR EACH ROW
-EXECUTE PROCEDURE insertar_movimiento();
-
-CREATE TRIGGER insertar_reabastecimiento
-BEFORE INSERT
-ON reabastecimiento
-FOR EACH ROW
-EXECUTE PROCEDURE insertar_movimiento();
-
-CREATE TRIGGER insertar_perdida
-BEFORE INSERT
-ON perdida
-FOR EACH ROW
-EXECUTE PROCEDURE insertar_movimiento();
 ```
 ## Registro_Contratos - Empleado
 
