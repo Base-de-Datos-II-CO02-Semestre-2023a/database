@@ -78,6 +78,7 @@ BEGIN
                     where id_lugar = lugarmovimiento and
                             id_articulo = new.id_articulo and
                             caducidad = registro.caducidad;
+                    cantidadTmp=0;
                     exit;
                 else
                     cantidadTmp = cantidadTmp - registro.cantidad;
@@ -88,6 +89,10 @@ BEGIN
                           caducidad = registro.caducidad;
                 end if;
             end loop;
+            if cantidadTmp > 0 then
+                raise exception 'no hay suficiente inventario';
+
+            end if;
         WHEN NEW.tipo = 'reabastecimiento' then
 
             if exists(
@@ -107,6 +112,8 @@ BEGIN
                 VALUES (NEW.cantidad, NEW.id_articulo,lugarmovimiento,NEW.caducidad);
             END IF;
         when new.tipo = 'traslado' then
+            new.precio_unitario = 0;
+            new.monto = 0;
             if exists(
                 select * from inventario
                 where id_lugar = destinolugar and
@@ -121,7 +128,7 @@ BEGIN
                     caducidad = new.caducidad;
             else
                 insert into inventario(cantidad, id_lugar, id_articulo, caducidad)
-                values (new.cantidad, destinolugar, new.id_articulo, new.cantidad);
+                values (new.cantidad, destinolugar, new.id_articulo, new.caducidad);
             end if;
             update inventario
             set cantidad = cantidad - new.cantidad
