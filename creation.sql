@@ -153,7 +153,7 @@ CREATE TABLE falta(
     
     descripcion VARCHAR(1000) NOT NULL,
     
-    impacto_prodcuitividad NUMERIC(1,2) check(impacto_prodcuitividad BETWEEN 0 AND 1) NOT NULL,
+    impacto_productividad NUMERIC(10,2) check(0 <= impacto_productividad and impacto_productividad <=1 ) NOT NULL,
     
     PRIMARY KEY (id_empleado, tipo, fecha)
 );
@@ -166,9 +166,9 @@ CREATE TABLE objetivo(
     
     descripcion VARCHAR(1000) NOT NULL,
     
-    porcentaje_avance NUMERIC(10,2) CHECK (porcentaje_avance BETWEEN 0 AND 1) NOT NULL,
+    porcentaje_avance NUMERIC(10,2) CHECK (0 <= porcentaje_avance and porcentaje_avance<= 1 ) NOT NULL,
     
-    impacto_productividad NUMERIC(10,2) CHECK (impacto_productividad BETWEEN 0 AND 1) NOT NULL
+    impacto_productividad NUMERIC(10,2) CHECK (0<=impacto_productividad and impacto_productividad<=1) NOT NULL
 );
 
 CREATE TYPE tipo_asistencia AS ENUM('entrada','salida');
@@ -205,23 +205,23 @@ CREATE TABLE articulo(
 
     precio_base NUMERIC(10,2) NOT NULL,
 
-    porcentaje_iva NUMERIC(10,2) check(porcentaje_iva BETWEEN 0 AND 1) NOT NULL,
-    porcentaje_ieps NUMERIC(10,2) check(porcentaje_ieps BETWEEN 0 AND 1) NOT NULL,
-    porcentaje_ganancia NUMERIC(10,2) check(porcentaje_ganancia BETWEEN 0 AND 1) NOT NULL,
-
-    CONSTRAINT pk_articulo PRIMARY KEY (id)
-) PARTITION BY RANGE (precio_base);
-
+    porcentaje_iva NUMERIC(10,2) check(0<= porcentaje_iva and porcentaje_iva <=1 ) NOT NULL,
+    porcentaje_ieps NUMERIC(10,2) check(0<=porcentaje_ieps and porcentaje_ieps<=1) NOT NULL,
+    porcentaje_ganancia NUMERIC(10,2) check(0<=porcentaje_ganancia and porcentaje_ganancia<=1) NOT NULL,
+    PRIMARY KEY (id, precio_base)
+) PARTITION BY RANGE (id,precio_base);
 
 CREATE TABLE inventario(
     cantidad INT NOT NULL,
     descuento NUMERIC(10,2) check(descuento BETWEEN 0 AND 1) NOT NULL,
-    id_lugar INTEGER CONSTRAINT inventario_lugar_id_fk REFERENCES lugar(id) NOT NULL,
-    id_articulo INTEGER CONSTRAINT inventario_id_articulo_fk REFERENCES articulo(id) NOT NULL,
+    id_lugar INTEGER NOT NULL,
+    id_articulo INTEGER NOT NULL,
+    precio_base NUMERIC(10,2)not null ,
     caducidad DATE,
+    constraint inventario_articulo_fk FOREIGN KEY (id_articulo, precio_base) REFERENCES articulo(id, precio_base),
+
     PRIMARY KEY(id_lugar, id_articulo, caducidad)
 );
-
 
 CREATE TABLE movimiento(
     id SERIAL PRIMARY KEY,
@@ -288,11 +288,13 @@ CREATE TYPE tipo_movimiento AS ENUM('venta','traslado','reabastecimiento','perdi
 
 CREATE TABLE concepto(
     cantidad INT NOT NULL,
-    id_articulo INT CONSTRAINT concepto_id_articulo_fk REFERENCES articulo(id),
+    id_articulo INT,
     id_movimiento INT NOT NULL CONSTRAINT  concepto_movimiento_fk REFERENCES movimiento(id),
     caducidad DATE,
     precio_unitario NUMERIC(8,2) NOT NULL,
+    precio_base NUMERIC(10,2) NOT NULL,
     tipo tipo_movimiento NOT NULL,
     monto NUMERIC(10,2) NOT NULL,
-    PRIMARY KEY (id_articulo, id_movimiento),
+    CONSTRAINT concepto_articulo_fk FOREIGN KEY (id_articulo, precio_base) REFERENCES articulo(id, precio_base),
+    PRIMARY KEY (id_articulo, id_movimiento, tipo)
 );
