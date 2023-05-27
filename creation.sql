@@ -1,6 +1,62 @@
 
 CREATE SCHEMA capibarav2;
 set search_path to capibarav2;
+CREATE TYPE tipo_regimen AS ENUM ('601', '602', '603', '604', '605', '606', '607', '608', '609', '610', '611', '612', '613', '614', '615', '616', '617', '618', '619', '620', '621', '622', '623', '624', '625', '626');
+
+CREATE TYPE tipo_externo AS ENUM ('Cliente','Provedor');
+
+CREATE TYPE tipo_lugar AS ENUM('sucursal','almacen','oficina');
+
+CREATE TYPE tipo_puesto AS ENUM('Ventas','Recursos_Humanos','Finanzas','Inventario','Admin');
+
+CREATE TYPE tipo_prestacion AS ENUM('Nomina','Seguro','Afore','Prima_Vacacional');
+
+CREATE TYPE tipo_gasto_lugar AS ENUM('fijo','variable');
+
+CREATE TYPE tipo_falta AS ENUM('inasistencia','retardo', 'indisciplina');
+
+CREATE TYPE impuesto AS ENUM('00','01','02','03','04');
+
+CREATE TYPE tipo_unidad AS ENUM('kg','k','l','ml','m','cm','pza');
+
+CREATE TYPE tipo_asistencia AS ENUM('entrada','salida');
+
+CREATE TYPE tipo_movimiento AS ENUM('venta','traslado','reabastecimiento','perdida');
+
+CREATE TYPE tipo_perdida AS ENUM('robo','caducado');
+
+CREATE TYPE tipo_pago AS ENUM('efectivo','tarjeta','transferencia');
+
+
+
+CREATE CAST (character varying AS tipo_regimen) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_externo) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_lugar) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_puesto) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_prestacion) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_gasto_lugar) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_falta) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS impuesto) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_unidad) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_asistencia) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_movimiento) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_perdida) WITH INOUT AS IMPLICIT;
+
+CREATE CAST (character varying AS tipo_pago) WITH INOUT AS IMPLICIT;
+
+
+
 CREATE TABLE ciudad(
     id VARCHAR(5) PRIMARY KEY,
     entidad VARCHAR(1000) NOT NULL,
@@ -20,9 +76,7 @@ CREATE TABLE sujeto(
     numero_externo INT
 );
 
-CREATE TYPE tipo_regimen AS ENUM ('601', '602', '603', '604', '605', '606', '607', '608', '609', '610', '611', '612', '613', '614', '615', '616', '617', '618', '619', '620', '621', '622', '623', '624', '625', '626');
 
-CREATE TYPE tipo_externo AS ENUM ('Cliente','Provedor');
 
 CREATE TABLE externo(
     id SERIAL PRIMARY KEY,
@@ -39,7 +93,6 @@ CREATE TABLE externo(
 
 
 
-CREATE TYPE tipo_lugar AS ENUM('sucursal','almacen','oficina');
 
 CREATE TABLE lugar(
     id SERIAL PRIMARY KEY,
@@ -54,7 +107,6 @@ CREATE TABLE lugar(
 
 ) INHERITS (sujeto);
 
-CREATE TYPE tipo_puesto AS ENUM('Ventas','Recursos_Humanos','Finanzas','Inventario','Admin');
 
 CREATE TABLE registro_contratos(
     id SERIAL PRIMARY KEY,
@@ -105,7 +157,6 @@ alter table lugar add constraint lugar_responsable_fk foreign key (id_responsabl
 alter table registro_contratos add constraint registro_contrato_id_empleado_fk foreign key (id_empleado) REFERENCES empleado(id);
 
 
-CREATE TYPE tipo_prestacion AS ENUM('Nomina','Seguro','Afore','Prima_Vacacional');
 
 CREATE TABLE prestacion(
     id_empleado INTEGER CONSTRAINT lugar_ REFERENCES empleado(id) NOT NULL,
@@ -128,7 +179,6 @@ CREATE TABLE registro_vacaciones(
     PRIMARY KEY(id_empleado, fecha_inicio)
 );
 
-CREATE TYPE tipo_gasto_lugar AS ENUM('fijo','variable');
 
 CREATE TABLE gastos_lugar(
     id_lugar INTEGER CONSTRAINT gastos_lugar_id_fk REFERENCES lugar(id) NOT NULL,
@@ -144,7 +194,6 @@ CREATE TABLE gastos_lugar(
     PRIMARY KEY (id_lugar,tipo, fecha)
 );
 
-CREATE TYPE tipo_falta AS ENUM('inasistencia','retardo', 'indisciplina');
 
 CREATE TABLE falta(
     id_empleado INTEGER CONSTRAINT falta_id_empleado_fk REFERENCES empleado(id) NOT NULL,
@@ -173,7 +222,6 @@ CREATE TABLE objetivo(
     impacto_productividad NUMERIC(10,2) CHECK (0<=impacto_productividad and impacto_productividad<=1) NOT NULL
 );
 
-CREATE TYPE tipo_asistencia AS ENUM('entrada','salida');
 
 CREATE TABLE control_asistencia(
     id_empleado INTEGER CONSTRAINT objetivo_id_empleado_fk REFERENCES empleado(id) NOT NULL,
@@ -189,8 +237,7 @@ CREATE TABLE cat_prod_ser(
     descripcion VARCHAR(1000) NOT NULL
 );
 
-CREATE TYPE impuesto AS ENUM('00','01','02','03','04');
-CREATE TYPE tipo_unidad AS ENUM('kg','k','l','ml','m','cm','pza');
+
 CREATE TABLE articulo(
     id NUMERIC(14),
     nombre VARCHAR(50) NOT NULL,
@@ -227,7 +274,6 @@ CREATE TABLE inventario(
 
     PRIMARY KEY(id_lugar, id_articulo, caducidad)
 );
-CREATE TYPE tipo_movimiento AS ENUM('venta','traslado','reabastecimiento','perdida');
 
 CREATE TABLE movimiento(
     id SERIAL,
@@ -256,7 +302,6 @@ CREATE TABLE traslado(
 ) INHERITS (movimiento);
 
 
-CREATE TYPE tipo_perdida AS ENUM('robo','caducado');
 
 CREATE TABLE perdida(
     id INTEGER PRIMARY KEY,
@@ -279,7 +324,6 @@ CREATE TABLE reabastecimiento(
 ) INHERITS (movimiento);
 
 
-CREATE TYPE tipo_pago AS ENUM('efectivo','tarjeta','transferencia');
 
 CREATE TABLE venta(
     id INTEGER PRIMARY KEY,
@@ -311,3 +355,11 @@ CREATE TABLE concepto(
     PRIMARY KEY (id_articulo, id_movimiento, tipo),
     constraint concepto_movimiento foreign key (id_movimiento, tipo) references movimiento(id, tipomov)
 );
+
+set search_path to public;
+
+grant select, insert, update, delete on all tables in schema capibarav2 to agentep;
+grant usage on all sequences in schema capibarav2 to agentep;
+grant usage on schema capibarav2 to agentep;
+
+
