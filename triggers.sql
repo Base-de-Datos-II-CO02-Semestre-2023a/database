@@ -148,6 +148,7 @@ CREATE TRIGGER concepto_inventario
 EXECUTE PROCEDURE movement_verification();
 
 
+
 create or replace function update_preciobase_inventario()
 returns TRIGGER
 language plpgsql
@@ -171,6 +172,7 @@ create trigger inventario_insert
     execute  procedure  update_preciobase_inventario();
 
 
+
 CREATE OR REPLACE FUNCTION insertar_movimiento()
 RETURNS TRIGGER
 LANGUAGE PLPGSQL
@@ -182,6 +184,7 @@ BEGIN
 RETURN NEW;
 END
 $$;
+
 
 CREATE OR REPLACE FUNCTION update_movimiento()
 RETURNS TRIGGER
@@ -200,6 +203,7 @@ BEGIN
 RETURN new;
 END
 $$;
+
 
 CREATE TRIGGER insertar_venta
 BEFORE INSERT
@@ -249,3 +253,29 @@ create trigger update_perdida
     for each row
     execute procedure update_movimiento();
 
+
+create or replace function update_contrato_empleado()
+returns trigger
+language plpgsql
+as
+$$
+    declare
+        cont int;
+begin
+    select contrato into cont from empleado
+        where id = new.id_empleado;
+
+    update registro_contratos set fecha_fin = current_date
+    where id = cont;
+
+    update empleado set contrato = new.id
+    where id = new.id_empleado;
+    return new;
+end
+$$;
+
+create or replace trigger update_contrato_into_empleado
+    after insert
+    on registro_contratos
+    for each row
+    execute procedure update_contrato_empleado();
