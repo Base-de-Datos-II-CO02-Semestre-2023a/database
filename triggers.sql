@@ -279,3 +279,19 @@ create or replace trigger update_contrato_into_empleado
     on registro_contratos
     for each row
     execute procedure update_contrato_empleado();
+create  or replace  function delete_contrato_empleado()
+returns trigger
+language plpgsql
+as
+    $$
+    begin
+        update empleado set contrato=null where contrato=old.id;
+        return old;
+    end
+$$;
+
+create or replace trigger remove_contrato_into_empleado
+    before delete
+          on registro_contratos
+          for each row
+    execute procedure delete_contrato_empleado();

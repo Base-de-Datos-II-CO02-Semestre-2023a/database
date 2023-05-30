@@ -6,13 +6,16 @@ select * from articulo;
 
 
 
-insert into ciudad (id, entidad, pais, nombre) VALUES (1, 'Ejemplo', 'Ejemplo', 'Ejemplo');
+insert into ciudad (id, entidad, pais, nombre) VALUES ('TOL', 'Estado de Mexico', 'Mexico', 'Toluca');
+
+select * from ciudad;
+
+select * from empleado;
+insert into externo (id, nombre, telefono, correo, codigo_postal, id_ciudad, calle, numero_interno, numero_externo, rfc, regimen_fiscal, tipo)
+VALUES ( 1, 'Ejemplo', '1234567890', 'ejemplo@gmail.com', '12345', 'TOL', 'Ejemplo', '1', '2', 'Ejemplo', '601', 'Cliente');
 
 insert into externo (id, nombre, telefono, correo, codigo_postal, id_ciudad, calle, numero_interno, numero_externo, rfc, regimen_fiscal, tipo)
-VALUES ( 1, 'Ejemplo', '1234567890', 'ejemplo@gmail.com', '12345', 1, 'Ejemplo', '1', '2', 'Ejemplo', '601', 'Cliente');
-
-insert into externo (id, nombre, telefono, correo, codigo_postal, id_ciudad, calle, numero_interno, numero_externo, rfc, regimen_fiscal, tipo)
-VALUES ( 2, 'Ejemplo', '2234567890', 'dejemplo@gmail.com', '12345', 1, 'Ejemplo', '1', '2', 'Ejemplod', '601', 'Provedor');
+VALUES ( 2, 'Ejemplo', '2234567890', 'dejemplo@gmail.com', '12345', 'TOL', 'Ejemplo', '1', '2', 'Ejemplod', '601', 'Provedor');
 
 select * from externo;
 
@@ -85,3 +88,8 @@ select * from venta;
 
 insert into concepto (cantidad, id_articulo, id_movimiento, caducidad, tipo)
 values (1, 1, 1, '2023-05-27', 'venta');
+
+
+grant usage on schema capibarav2 to agentep;
+grant select, insert, update, delete on all tables in schema capibarav2 to agentep;
+
