@@ -295,3 +295,21 @@ create or replace trigger remove_contrato_into_empleado
           on registro_contratos
           for each row
     execute procedure delete_contrato_empleado();
+
+
+create or replace function primer_contrato()
+returns trigger
+language plpgsql
+as
+$$
+BEGIN	
+	UPDATE empleado SET contrato=new.id WHERE id = new.id_empleado;
+return new; 
+END
+$$;
+
+create trigger nuevo_contrato
+    after insert
+    on registro_contratos
+    for each row
+    execute procedure primer_contrato();
