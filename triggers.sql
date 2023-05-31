@@ -313,3 +313,69 @@ create trigger nuevo_contrato
     on registro_contratos
     for each row
     execute procedure primer_contrato();
+    
+create or replace function modificacion_registro_contratos()
+returns trigger
+language plpgsql
+as
+$$
+BEGIN
+
+CASE	
+
+	WHEN new.fecha_fin <> OLD.fecha_fin THEN
+		insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"fecha_fin": ' || old.fecha_fin ||'}');
+
+	WHEN new.puesto <> OLD.puesto THEN
+		insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"puesto": ' || old.puesto ||'}');
+
+	WHEN new.salario <> OLD.salario THEN
+		
+		insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"salario": ' || old.salario ||'}');
+
+	WHEN new.dias_vacaciones <> OLD.dias_vacaciones THEN
+        	insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"dias_vacaciones": ' || old.dias_vacaciones ||'}');
+            
+	WHEN new.fecha_fin <> OLD.fecha_fin or new.puesto <> OLD.puesto THEN
+       		insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"fecha_fin": ' || old.fecha_fin ||'}');
+
+	WHEN new.fecha_fin <> OLD.fecha_fin or new.salario <> OLD.salario THEN
+        	insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"fecha_fin": ' || old.fecha_fin || ' , "salario" : ' || new.salario || '}');
+
+	WHEN new.fecha_fin <> OLD.fecha_fin or new.dias_vacaciones <> OLD.dias_vacaciones THEN
+        	insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"fecha_fin": ' || old.fecha_fin || ', "dias_vacaciones" : ' || old.dias_vacaciones || '}');
+
+	WHEN new.puesto <> OLD.puesto or new.salario <> OLD.salario THEN
+		insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"puesto": ' || old.puesto || ',"salario" : ' || old.salario || '}');
+
+	WHEN new.puesto <> OLD.puesto or new.dias_vacaciones <> OLD.dias_vacaciones THEN
+		insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"puesto": ' || old.puesto || ',"dias_vacaciones" : ' || old.dias_vacaciones || '}');
+
+
+	WHEN new.salario <> OLD.salario or new.dias_vacaciones <> OLD.dias_vacaciones THEN
+		insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"salario" : ' || old.salario || ', "dias_vacaciones" : ' ||old.dias_vacaciones || '}');
+
+	WHEN new.fecha_fin <> OLD.fecha_fin or new.puesto <> OLD.puesto or new.salario <> OLD.salario or new.dias_vacaciones <> OLD.dias_vacaciones THEN
+		insert into modificacion_contrato(id_contrato, changed_on, modificaciones)
+            	values (old.id,now(),'{"fecha_fin": ' || old.fecha_fin || ',"puesto": ' || old.puesto || ',"salario" : ' || old.salario || ', "dias_vacaciones" : ' || old.dias_vacaciones ||'}');
+
+END CASE;
+return new; 
+END;
+$$;
+
+create trigger modificar_contrato
+    before update
+    on registro_contratos
+    for each row
+    execute procedure Modificacion_Registro_Contratos();
