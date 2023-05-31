@@ -131,7 +131,7 @@ CREATE TABLE registro_contratos(
 CREATE TABLE modificacion_contrato(
     id_contrato INT CONSTRAINT id_contrato_fk REFERENCES registro_contratos(id) NOT NULL,
     changed_on TIMESTAMP(6) NOT NULL,
-    modificaciones JSON NOT NULL,
+    modificaciones VARCHAR(100) NOT NULL,
     PRIMARY KEY (id_contrato, changed_on)
 );
 
