@@ -54,3 +54,5 @@ create trigger modificar_contrato
     on registro_contratos
     for each row
 execute procedure Modificacion_Registro_Contratos();
+
+

@@ -53,11 +53,13 @@ select * from movimiento;
 
 select * from inventario;
 
-insert into reabastecimiento ( id, id_lugar, fecha, hora, id_provedor, total_compra)
-values (2, 1, current_date, current_time, 1, 0);
+select * from lugar;
+
+insert into reabastecimiento ( id_lugar, fecha, hora, id_provedor, total_compra)
+values ( 2, current_date, current_time, 1, 0);
 
 insert into concepto (cantidad, id_articulo, id_movimiento, caducidad, precio_unitario, tipo, monto)
-values (3, 1, 2, '2023-05-27', 24, 'reabastecimiento', 0);
+values (3, 1, 4, '2023-05-27', 24, 'reabastecimiento', 10);
 
 select * from concepto;
 

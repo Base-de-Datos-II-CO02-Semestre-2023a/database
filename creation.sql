@@ -309,7 +309,7 @@ CREATE TABLE perdida(
     tipomov tipo_movimiento default 'perdida',
     id_lugar INTEGER CONSTRAINT movimiento_id_lugar_fk REFERENCES lugar(id) NOT NULL,
     tipo tipo_perdida NOT NULL,
-    total_perdida NUMERIC(10,2) CHECK (total_perdida >= 0) NOT NULL
+    total_perdida NUMERIC(10,2) CHECK (total_perdida >= 0) NOT NULL default 0
 ) INHERITS (movimiento);
 
 
@@ -332,7 +332,7 @@ CREATE TABLE venta(
     id_lugar INTEGER CONSTRAINT movimiento_id_lugar_fk REFERENCES lugar(id) NOT NULL,
 
     id_empleado INTEGER CONSTRAINT venta_id_empleador_fk REFERENCES empleado(id) NOT NULL,
-    id_cliente INTEGER CONSTRAINT venta_id_cliente_fk REFERENCES externo(id) NOT NULL,
+    id_cliente INTEGER CONSTRAINT venta_id_cliente_fk REFERENCES externo(id),
 
     subtotal NUMERIC(10,2) CHECK (subtotal >= 0) NOT NULL default 0,
     iva NUMERIC(10,2) CHECK (iva >= 0) NOT NULL default 0,
