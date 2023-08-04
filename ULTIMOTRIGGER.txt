@@ -1,0 +1,30 @@
+Objetivo - empleado
+Cuando se actualiza la tabla objetivo, si el campo porcentaje_avance es igual a 1, 
+el indice_productividad de empleado se incrementa de la siguiente forma indice_productividad = indice_productividad + impacto_productividad.
+
+CREATE OR REPLACE FUNCTION productividad_avance()
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+AS
+$$
+BEGIN
+
+IF (NEW.porcentaje_avance = 1 AND (SELECT indice_productividad FROM empleado WHERE id = NEW.id_empleado) < 1 ) THEN
+	UPDATE empleado
+	SET indice_productividad = indice_productividad + (NEW.impacto_productividad / 10)
+	WHERE id = NEW.id_empleado; 
+END IF;
+RETURN NEW;
+END
+$$
+;
+
+CREATE TRIGGER objetivo_empleado 
+BEFORE UPDATE OF indice_productividad ON OBJETIVO
+FOR EACH ROW
+EXECUTE FUNCTION  productividad_avance();
+
+
+INSERT INTO OBJETIVO (id_empleado, descripcion, porcentaje_avance, impacto_productividad)
+VALUES (1, 'Trigger', 0, 6);
+	

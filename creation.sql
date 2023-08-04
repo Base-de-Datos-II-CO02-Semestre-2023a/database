@@ -1,8 +1,11 @@
+CREATE DATABASE capibara;
+
+-- nos conectamos a la bd capibara--
 
 CREATE SCHEMA capibarav2;
 set search_path to capibarav2;
 
-CREATE TYPE tipo_regimen AS ENUM ('601', '602', '603', '604', '605', '606', '607', '608', '609', '610', '611', '612', '613', '614', '615', '616', '617', '618', '619', '620', '621', '622', '623', '624', '625', '626');
+CREATE TYPE tipo_regimen AS ENUM ('personaMoral', 'sueldosSalarios', 'sinObFisc', 'actEmpresarial');
 
 CREATE TYPE tipo_externo AS ENUM ('Cliente','Provedor');
 
@@ -84,7 +87,6 @@ CREATE TABLE externo(
     rfc VARCHAR(13) UNIQUE,
     regimen_fiscal tipo_regimen NOT NULL,
     tipo tipo_externo NOT NULL,
-
     telefono BIGINT NOT NULL UNIQUE,
     correo VARCHAR(256) check (correo LIKE '%_@%.%')NOT NULL UNIQUE,
     id_ciudad VARCHAR CONSTRAINT externo_id_ciudad_fk REFERENCES ciudad(id) NOT NULL
@@ -238,10 +240,11 @@ CREATE TABLE cat_prod_ser(
     descripcion VARCHAR(1000) NOT NULL
 );
 
+alter table articulo
 
 CREATE TABLE articulo(
     id NUMERIC(14),
-    nombre VARCHAR(50) NOT NULL,
+    nombre VARCHAR(200) NOT NULL,
 
     descripcion INT CONSTRAINT articulo_descripcion_prod_ser_fk REFERENCES cat_prod_ser(clave) NOT NULL,
 
@@ -358,9 +361,10 @@ CREATE TABLE concepto(
 );
 
 set search_path to public;
-
+create user agentep with password 'elornitorrinco';
 grant select, insert, update, delete on all tables in schema capibarav2 to agentep;
 grant usage on all sequences in schema capibarav2 to agentep;
 grant usage on schema capibarav2 to agentep;
+
 
 

@@ -1,3 +1,16 @@
+create or replace function ifnullsetzero(num numeric)
+    returns numeric
+    language plpgsql
+as
+    $$
+        begin
+            if num is null then
+                num = 0;
+            end if;
+            return num;
+        end;
+    $$;
+
 create or replace function insert_tiempo(diaP date)
     returns void
     language plpgsql
@@ -5,17 +18,16 @@ as
 $$
 
     declare almacenamiento_restanteNuevo int;
-
-    declare ingresosNuevos bigint;
-    declare egresosNuevos bigint;
-
+    declare ingresosNuevos numeric(10,2);
+    declare egresosNuevos numeric(10,2);
+    declare tmp numeric(10,2);
     declare dimEmpleado dim_empleado%ROWTYPE;
     declare lugarDim dim_lugar%ROWTYPE;
     declare last date;
 
     begin
             last := (select id from dim_tiempo where id < diaP order by id desc limit 1);
-            case when last is null then last = '1800-01-01'; end case;
+            case when last is null then last = '1800-01-01';else end case;
             insert into dim_tiempo(id, dia, mes, año) VALUES (
                                                               diaP,
                                                               to_char(diaP, 'DD'),
@@ -28,19 +40,24 @@ $$
                                            where id_lugar = lugarDim.id
                                              and fecha > last
                                             and fecha <= diaP;
+
+            egresosNuevos = ifnullsetzero(egresosNuevos);
+            tmp = (select sum(total_perdida) from perdida where id_lugar = lugarDim.id
+                                                            and fecha > last
+                                                            and fecha <= diaP);
             --TODO: con una variable declarada, guarda los datos de los selects en ella, haz los case que cuando sea null, esta se vuelva 0
-            egresosNuevos = egresosNuevos + (select sum(total_perdida) from perdida where id_lugar = lugarDim.id
-                                                                        and fecha > last
-                                                                        and fecha <= diaP);
-            egresosNuevos = egresosNuevos + (select sum(total_compra) from reabastecimiento where id_lugar = lugarDim.id
-                                                                                  and fecha > last
-                                                                                  and fecha <= diaP);
-            egresosNuevos = egresosNuevos + (select  sum(iva) from venta where id_lugar = lugarDim.id
-                                                               and fecha > last
-                                                               and fecha <= diaP);
-            ingresosNuevos = (select sum(total) from venta where id_lugar = lugarDim.id
+            egresosNuevos = egresosNuevos + ifnullsetzero(tmp);
+            tmp =  (select sum(total_compra) from reabastecimiento where id_lugar = lugarDim.id
+                                                                     and fecha > last
+                                                                     and fecha <= diaP);
+            egresosNuevos = egresosNuevos + ifnullsetzero(tmp);
+            tmp = (select  sum(iva) from venta where id_lugar = lugarDim.id
+                                                 and fecha > last
+                                                 and fecha <= diaP);
+            egresosNuevos = egresosNuevos + ifnullsetzero(tmp);
+            ingresosNuevos = ifnullsetzero((select sum(total) from venta where id_lugar = lugarDim.id
                                            and fecha > last
-                                           and fecha <= diaP);
+                                           and fecha <= diaP));
 
             insert into fact_finanzas(id_lugar, id_tiempo, ingresos, egresos, ganancias)
                 values (lugarDim.id, diaP, ingresosNuevos, egresosNuevos, ingresosNuevos-egresosNuevos);
@@ -65,7 +82,7 @@ $$
 
                     insert into fact_productividad(id_empleado, id_lugar, id_tiempo, productividad)
                         values (dimEmpleado.id, dimEmpleado.id_lugar, diaP, (select indice_productividad from empleado where id = dimEmpleado.id));
-                end loop;
+             end loop;
     end;
 $$;
 
@@ -125,3 +142,46 @@ create or replace trigger update_dim_empleado
     execute function update_dim_empleado();
 
 
+create or replace function init_dims()
+    returns void
+    language plpgsql
+as
+    $$
+    declare empleadoL record;
+    declare lugar lugar%ROWTYPE;
+    declare dimLugar dim_lugar%ROWTYPE;
+    declare dimEmpleado dim_empleado%ROWTYPE;
+        begin
+         for lugar in select * from lugar loop
+             select * into dimLugar from dim_lugar where id = lugar.id;
+             case when dimLugar is null then
+                 insert into dim_lugar(id, nombre, ciudad, tipo, codigo_postal)
+                 values (lugar.id,lugar.nombre, lugar.id_ciudad, lugar.tipo, lugar.codigo_postal);
+             else
+             end case;
+         end loop;
+
+
+         for empleadoL in select e.id as id, rc.id_lugar as id_lugar, e.nombre as nombre, rc.puesto as puesto, e.contrato as contrato from empleado e inner join registro_contratos rc on e.contrato = rc.id loop
+             select * into dimEmpleado from dim_empleado where id=empleadoL.id;
+             case when dimEmpleado is null then
+                 insert into dim_empleado(id, id_lugar, nombre, puesto, contrato) VALUES (empleadoL.id,empleadoL.id_lugar, empleadoL.nombre, empleadoL.puesto, empleadoL.contrato);
+             else
+             end case;
+
+         end loop;
+        end;
+    $$;
+
+create or replace function ifnullignore(texto varchar)
+returns varchar
+language plpgsql
+as
+    $$BEGIN
+    if (texto is null) then
+        return '';
+        else
+        return texto;
+    end if;
+end;
+$$;

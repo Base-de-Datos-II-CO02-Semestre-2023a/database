@@ -26,14 +26,14 @@ CREATE TABLE fact_finanzas(
     id_tiempo date references dim_tiempo(id),
     ingresos bigint,
     egresos bigint,
-    ganancias bigint,
+    ganancias numeric(10,2),
     primary key (id_lugar, id_tiempo)
 );
 
 create table fact_almacenamiento(
     id_lugar int references dim_lugar(id),
     id_tiempo date references dim_tiempo(id),
-    almacenamiento_restante int,
+    almacenamiento_restante numeric(10,2),
     primary key (id_tiempo, id_lugar)
 );
 
@@ -41,7 +41,15 @@ create table fact_productividad(
     id_empleado int references dim_empleado(id),
     id_lugar int references dim_lugar(id),
     id_tiempo date references dim_tiempo(id),
-    productividad int,
+    productividad numeric(10,2),
     primary key (id_lugar,id_tiempo,id_empleado)
 );
 
+
+set search_path to public;
+
+grant select on all tables in schema capibarav2 to agentep;
+
+set search_path to capibarav2
+
+copy articulo from ~ar;
